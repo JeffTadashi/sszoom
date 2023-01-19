@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+.vscode/*
+__pycache*
+
+# testing
+test*
+temp*
+test*
+

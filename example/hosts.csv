@@ -1,0 +1,7 @@
+hostname,ip,tag
+switch-01,10.10.10.1,chicago
+switch-02,10.10.20.1,chicago
+switch-03,10.10.30.1,chicago
+ad-server-01,172.16.0.1,
+ad-server-02,172.16.0.2
+dns-server-01,172.17.0.1,dns
