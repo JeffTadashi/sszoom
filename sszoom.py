@@ -5,6 +5,7 @@ import pathlib
 import pandas as pd
 import readline
 from rich.prompt import Prompt
+from rich.table import Table
 from rich import print
 import sys
 import tomli
@@ -52,26 +53,45 @@ def main(argv):
     while True: 
 
         print('')
-        k_input = Prompt.ask('[bold cyan]Enter hostname (full or partial) or previous # number')
+        k_input = Prompt.ask('[bold]Enter hostname (full or partial) or previous # number')
+        # if keyboard input empty, extra space needed in print
+        if not k_input: print ('')
         # allows up arrow to get last entry entered
         readline.add_history(k_input) 
+        print('')
 
         # First, check if a hostname matches exactly 
-        ## TODO REMOVE df_filter = df_hosts[df_hosts.index.isin([k_input])]
         df_filter = df_hosts[df_hosts.index == k_input]
         # Match found, we can exit loop with the hostname
         if not df_filter.empty:
-            print(f"Hostname found of {df_filter.index[0]}")
-            # TODO variable return
+            hostname = df_filter.index[0]
             break
 
+        # Filter down on rows that contain the user input
+        df_filter = df_hosts[df_hosts.index.str.contains(k_input)]
+        # Sort the df filter by index (hostname)
+        df_filter = df_filter.sort_index()
+        # If filtered df is just 1 row, we found our match
+        if len(df_filter) == 1:
+            hostname = df_filter.index[0]
+            break
+        elif len(df_filter) == 0:
+            print('No Matches Found!')
+            continue
+        elif len(df_filter) > 1:
+
+            table = Table(title='Matching Hostnames')
+            table.add_column("Hostname", style="cyan")
+            table.add_column("IP", style="purple")
+            table.add_column("Tag", style="green")
+
+            for ind in df_filter.index:
+                table.add_row(ind,df_filter['ip'][ind],df_filter['tag'][ind])
+            print (table)
+
         
-        # Filter down on rows that contain (or equal) the user input
-        df_hostmatches = df_hosts[df_hosts.index.str.contains(k_input)]
-        name_matches_count = df_hostmatches.sum()
 
-        print (df_hostmatches)
-
+    print(f"[bold]Hostname found of [purple]{hostname}")
 
 if __name__== '__main__':
     main(sys.argv[1:])
