@@ -1,0 +1,13 @@
+####################################################################
+# settings.toml for SSZOOM script
+####################################################################
+
+
+# These are the arguments to add to the ssh command. 
+# Typically, this would be allowing additional security ciphers/kex/etc that are normally not allowed
+# (common for Cisco equipment, for example)
+# Feel free to use the example argument below:
+SSH_PARAMETERS = '-o Ciphers=+aes256-cbc -o HostKeyAlgorithms=+ssh-rsa -o KexAlgorithms=+diffie-hellman-group1-sha1,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1 -o ConnectTimeout=9 -o StrictHostKeyChecking=no'
+
+
+

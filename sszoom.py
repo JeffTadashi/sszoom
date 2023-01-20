@@ -11,6 +11,7 @@ from rich import print
 import sys
 import tomli
 
+# banner is from: http://www.patorjk.com/software/taag/#p=display&f=ANSI%20Regular&t=sszoom
 banner = '''
 [bold white]
 ███████ ███████ ███████  ██████   ██████  ███    ███ 
@@ -45,7 +46,8 @@ def main(argv):
     # Open all the files needed
     df_hosts = pd.read_csv(paths['HOSTS'], index_col=0, keep_default_na=False)
     df_creds = pd.read_csv(paths['CREDENTIALS'], index_col=0)
-
+    with open(paths['SETTINGS'], mode="rb") as file:
+        SETTINGS = tomli.load(file)
 
     #############################################
     ## 
@@ -175,14 +177,16 @@ def main(argv):
     print (f"[bold white]Connecting to: [bold cyan]{ip}[bold white] as [bold cyan]{username}")
     print ("")
 
-    ssh_params = f"-o Ciphers=+aes256-cbc -o HostKeyAlgorithms=+ssh-rsa -o KexAlgorithms=+diffie-hellman-group1-sha1,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1 -o ConnectTimeout=9 -o StrictHostKeyChecking=no {username}@{ip}"
+    # SSH Parameters. Combination of settings.toml and the username@password field
+    ssh_params_all = f"{SETTINGS['SSH_PARAMETERS']} {username}@{ip}"
 
+    # All the commands following the pipe "|"
+    # Currently, this is whats used for logging
     pipe_params = f"tee {paths['LOG']}/{log_filename}"
-    
 
     # Expect script to enter passwordnon-interactively
     # 2> /dev/null is to suppress errors. Sometime it would display password
-    os.system(f" expect -c 'spawn ssh {ssh_params}; expect \"assword\"; send \"{password}\r\"; interact' 2> /dev/null | {pipe_params} ")
+    os.system(f" expect -c 'spawn ssh {ssh_params_all}; expect \"assword\"; send \"{password}\r\"; interact' 2> /dev/null | {pipe_params} ")
 
     print ("")
     Prompt.ask("[bold white]SSZOOM script concluded. Press ENTER to fully close")
