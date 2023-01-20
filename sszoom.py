@@ -4,14 +4,27 @@
 import pathlib
 import pandas as pd
 import readline
-import rich
+from rich.prompt import Prompt
+from rich import print
 import sys
 import tomli
 
+banner = '''
+[bold purple]
+███████ ███████ ███████  ██████   ██████  ███    ███ 
+██      ██         ███  ██    ██ ██    ██ ████  ████ 
+███████ ███████   ███   ██    ██ ██    ██ ██ ████ ██ 
+     ██      ██  ███    ██    ██ ██    ██ ██  ██  ██ 
+███████ ███████ ███████  ██████   ██████  ██      ██ 
+                                                     
+               Version 0.0 + DEV
 
+'''
 
 
 def main(argv):
+
+    print(banner)
 
     #############################################
     ## FILE/PATH HANDLING
@@ -27,18 +40,37 @@ def main(argv):
     paths['CREDENTIALS'] = pathlib.Path.home() / '.sszoom' / 'credentials.csv'
 
     # Open all the files needed
-    hosts_df = pd.read_csv(paths['HOSTS'], index_col=0, keep_default_na=False)
-    creds_df = pd.read_csv(paths['CREDENTIALS'], index_col=0)
-    print (hosts_df)
-    print (creds_df)
+    df_hosts = pd.read_csv(paths['HOSTS'], index_col=0, keep_default_na=False)
+    df_creds = pd.read_csv(paths['CREDENTIALS'], index_col=0)
 
 
     #############################################
     ## 
     #############################################
 
+    # loop to get down to single hostname
+    while True: 
 
+        print('')
+        k_input = Prompt.ask('[bold cyan]Enter hostname (full or partial) or previous # number')
+        # allows up arrow to get last entry entered
+        readline.add_history(k_input) 
 
+        # First, check if a hostname matches exactly 
+        ## TODO REMOVE df_filter = df_hosts[df_hosts.index.isin([k_input])]
+        df_filter = df_hosts[df_hosts.index == k_input]
+        # Match found, we can exit loop with the hostname
+        if not df_filter.empty:
+            print(f"Hostname found of {df_filter.index[0]}")
+            # TODO variable return
+            break
+
+        
+        # Filter down on rows that contain (or equal) the user input
+        df_hostmatches = df_hosts[df_hosts.index.str.contains(k_input)]
+        name_matches_count = df_hostmatches.sum()
+
+        print (df_hostmatches)
 
 
 if __name__== '__main__':
