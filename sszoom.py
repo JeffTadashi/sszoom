@@ -11,7 +11,7 @@ import sys
 import tomli
 
 banner = '''
-[bold purple]
+[bold white]
 ███████ ███████ ███████  ██████   ██████  ███    ███ 
 ██      ██         ███  ██    ██ ██    ██ ████  ████ 
 ███████ ███████   ███   ██    ██ ██    ██ ██ ████ ██ 
@@ -49,18 +49,26 @@ def main(argv):
     ## 
     #############################################
 
+    # Set blank in case user calls number first on accident
+    rnumdict = {}
     # loop to get down to single hostname
     while True: 
 
         print('')
-        k_input = Prompt.ask('[bold]Enter hostname (full or partial) or previous # number')
+        k_input = Prompt.ask("[bold white]Enter hostname (full or partial) or previous search's # number")
         # if keyboard input empty, extra space needed in print
         if not k_input: print ('')
         # allows up arrow to get last entry entered
         readline.add_history(k_input) 
         print('')
 
-        # First, check if a hostname matches exactly 
+        # Check if user provided just a number, then check if it mathces the last rnum result
+        if k_input.isdigit() and k_input in rnumdict:
+            # return hostname in the results dict
+            hostname = rnumdict[k_input]
+            break
+
+        # Check if a hostname matches exactly 
         df_filter = df_hosts[df_hosts.index == k_input]
         # Match found, we can exit loop with the hostname
         if not df_filter.empty:
@@ -77,21 +85,34 @@ def main(argv):
             break
         elif len(df_filter) == 0:
             print('No Matches Found!')
+            # reset results table, if it existed before
+            rnumdict = {}
             continue
         elif len(df_filter) > 1:
 
             table = Table(title='Matching Hostnames')
+            table.add_column("#", style="yellow")
             table.add_column("Hostname", style="cyan")
-            table.add_column("IP", style="purple")
+            table.add_column("IP", style="magenta")
             table.add_column("Tag", style="green")
 
+            # pandas doens't have row number, so we will keep track of this separately with rnum/rnundict
+            rnum = 0
+            rnumdict = {}
+            # iterate through each result row
             for ind in df_filter.index:
-                table.add_row(ind,df_filter['ip'][ind],df_filter['tag'][ind])
+                rnum += 1
+                # populate the dict of result number against hostname
+                rnumdict[str(rnum)] = ind
+                table.add_row(str(rnum),ind,df_filter['ip'][ind],df_filter['tag'][ind])
             print (table)
+            continue
+ 
+        print ("you're not supposed to be here...")
 
         
 
-    print(f"[bold]Hostname found of [purple]{hostname}")
+    print(f"[bold]Hostname found of [bold cyan]{hostname}")
 
 if __name__== '__main__':
     main(sys.argv[1:])
