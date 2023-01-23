@@ -86,10 +86,11 @@ def main(argv):
             hostname = rnumdict[k_input[1:]]
             break
 
-        # Check if a hostname matches exactly 
-        df_filter = df_hosts[df_hosts.index == k_input]
+        # Check if a hostname matches exactly (lowercase both, so it is caps insensitive)
+        df_filter = df_hosts[df_hosts.index.str.lower() == k_input.lower()]
         # Match found, we can exit loop with the hostname
         if not df_filter.empty:
+            print ("exact match test")
             hostname = df_filter.index[0]
             break
 
@@ -99,8 +100,8 @@ def main(argv):
             ip = k_input
             break
 
-        # Filter down on rows that contain the user input
-        df_filter = df_hosts[df_hosts.index.str.contains(k_input)]
+        # Filter down on rows that contain the user input (case/caps insensitive)
+        df_filter = df_hosts[df_hosts.index.str.contains(k_input, case=False)]
         # Sort the df filter by index (hostname)
         df_filter = df_filter.sort_index()
         # If filtered df is just 1 row, we found our match
