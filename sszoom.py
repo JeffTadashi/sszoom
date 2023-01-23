@@ -32,7 +32,11 @@ BANNER = '''
 RE_IP = r"(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
 
 
-
+# TODO: For user prompt, when using Rich's Prompt, there is a bug: https://github.com/Textualize/rich/issues/2293
+# Reverting to using standard python prompt with ANSI color codes for the important Prompt/Inputs
+# E.G. k_input = Prompt.ask("[bold white]Enter hostname (full or partial), IP, or search number starting with #")
+COLOR_BOLD = '\033[1m'
+COLOR_END = '\033[0m'
 
 
 def main(argv):
@@ -73,7 +77,7 @@ def main(argv):
     while True: 
 
         print('')
-        k_input = Prompt.ask("[bold white]Enter hostname (full or partial), IP, or search number starting with #")
+        k_input = input(f"{COLOR_BOLD}Enter hostname (full or partial), IP, or search number (starting with #):{COLOR_END} ")
         # if keyboard input empty, extra space needed in print
         if not k_input: print ('')
         # allows up arrow to get last entry entered
@@ -146,7 +150,7 @@ def main(argv):
     while True:
 
         print('')
-        k_input = Prompt.ask("[bold white]Enter username or alias. Leave blank to list all aliases")
+        k_input = input(f"{COLOR_BOLD}Enter username or alias. Leave blank to list all aliases:{COLOR_END} ")
         # if keyboard input empty, extra space needed in print
         if not k_input: print ('')
         # allows up arrow to get last entry entered
