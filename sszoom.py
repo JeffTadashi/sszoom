@@ -4,6 +4,7 @@ from datetime import datetime
 import os
 import pathlib
 import pandas as pd
+import re
 import readline
 from rich.prompt import Prompt
 from rich.table import Table
@@ -11,8 +12,11 @@ from rich import print
 import sys
 import tomli
 
+
+
+
 # banner is from: http://www.patorjk.com/software/taag/#p=display&f=ANSI%20Regular&t=sszoom
-banner = '''
+BANNER = '''
 [bold white]
 ███████ ███████ ███████  ██████   ██████  ███    ███ 
 ██      ██         ███  ██    ██ ██    ██ ████  ████ 
@@ -24,9 +28,16 @@ banner = '''
 '''
 
 
+# regex for IP, thanks to: https://ihateregex.io/expr/ip
+RE_IP = r"(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
+
+
+
+
+
 def main(argv):
 
-    print(banner)
+    print(BANNER)
 
     #############################################
     ## FILE/PATH HANDLING
@@ -53,23 +64,26 @@ def main(argv):
     ## 
     #############################################
 
-    # Set blank in case user calls number first on accident
+    # Set some variables blank before we start
     rnumdict = {}
+    hostname = ""
+    ip = ""
+
     # loop to get down to single hostname
     while True: 
 
         print('')
-        k_input = Prompt.ask("[bold white]Enter hostname (full or partial) or previous search's # number")
+        k_input = Prompt.ask("[bold white]Enter hostname (full or partial), IP, or search number starting with #")
         # if keyboard input empty, extra space needed in print
         if not k_input: print ('')
         # allows up arrow to get last entry entered
         readline.add_history(k_input) 
         print('')
 
-        # Check if user provided just a number, then check if it mathces the last rnum result
-        if k_input.isdigit() and k_input in rnumdict:
+        # Check if user provided # preceeding a number (e.g. #21, #3), then check if number portion ("[1:]") matches the last rnum result
+        if k_input.startswith('#') and k_input[1:].isdigit() and k_input[1:] in rnumdict:
             # return hostname/ip from the results dict
-            hostname = rnumdict[k_input]
+            hostname = rnumdict[k_input[1:]]
             break
 
         # Check if a hostname matches exactly 
@@ -77,6 +91,12 @@ def main(argv):
         # Match found, we can exit loop with the hostname
         if not df_filter.empty:
             hostname = df_filter.index[0]
+            break
+
+        # Check if IP was provided (regex match). If so, just connect to that IP
+        if re.search(RE_IP, k_input):
+            # Exiting with IP instead of hostname. There is no hostname in this case
+            ip = k_input
             break
 
         # Filter down on rows that contain the user input
@@ -115,7 +135,8 @@ def main(argv):
         print ("[bold red]ERROR! you're not supposed to be here...")
 
     
-    print(f"[bold]Hostname found: [bold cyan]{hostname}")
+    if hostname: print(f"[bold]Hostname found: [bold cyan]{hostname}")
+    elif ip: print(f"[bold]Using manually entered IP: [bold cyan]{ip}")
 
     #############################################
     ## Username/Password
@@ -168,10 +189,12 @@ def main(argv):
     # Get timestamp and log filename
     now_time = datetime.now()
     timestamp = now_time.strftime('%Y-%m-%d__%H-%M-%S')
-    log_filename = f"{timestamp}__{hostname}.ios"
+    # File contains hostname if known. Otherwise it's IP
+    if hostname: log_filename = f"{timestamp}__{hostname}.ios"
+    elif ip: log_filename = f"{timestamp}__{ip}.ios"
 
-    # Get IP. Index is the hostname
-    ip = df_hosts['ip'][hostname]
+    # Get IP. Index is the hostname (Skip this if IP was provided already manually)
+    if not ip: ip = df_hosts['ip'][hostname]
 
     print ("")
     print (f"[bold white]Connecting to: [bold cyan]{ip}[bold white] as [bold cyan]{username}")
