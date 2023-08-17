@@ -94,7 +94,6 @@ def main(argv):
         df_filter = df_hosts[df_hosts.index.str.lower() == k_input.lower()]
         # Match found, we can exit loop with the hostname
         if not df_filter.empty:
-            print ("exact match test")
             hostname = df_filter.index[0]
             break
 
